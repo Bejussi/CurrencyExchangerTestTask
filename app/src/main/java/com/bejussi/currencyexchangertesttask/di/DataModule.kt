@@ -6,12 +6,15 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.bejussi.currencyexchangertesttask.data.CurrencyExchangerRepositoryImpl
 import com.bejussi.currencyexchangertesttask.data.local.BalanceDao
 import com.bejussi.currencyexchangertesttask.data.local.CurrencyExchangerDatabase
+import com.bejussi.currencyexchangertesttask.data.remote.CurrencyExchangeRatesApi
 import com.bejussi.currencyexchangertesttask.domain.CurrencyExchangerRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 val dataModule = module {
 
@@ -39,7 +42,24 @@ val dataModule = module {
 
     single<CurrencyExchangerRepository> {
         CurrencyExchangerRepositoryImpl(
-            balanceDao = get()
+            balanceDao = get(),
+            currencyExchangeRatesApi = get()
         )
+    }
+
+    single<GsonConverterFactory> {
+        GsonConverterFactory.create()
+    }
+
+    single<Retrofit> {
+        Retrofit.Builder()
+            .baseUrl("https://developers.paysera.com/")
+            .addConverterFactory(get<GsonConverterFactory>())
+            .build()
+    }
+
+    single<CurrencyExchangeRatesApi> {
+        val retrofit = get<Retrofit>()
+        retrofit.create(CurrencyExchangeRatesApi::class.java)
     }
 }

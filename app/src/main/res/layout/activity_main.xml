@@ -102,7 +102,7 @@
         android:layout_marginEnd="@dimen/rates_margin_start"
         android:autofillHints=""
         android:background="@null"
-        android:hint="@string/money"
+        android:text="@string/money"
         android:inputType="numberDecimal"
         app:layout_constraintBottom_toBottomOf="@+id/sellImageView"
         app:layout_constraintEnd_toStartOf="@+id/sellRatesSpinner"

@@ -8,7 +8,8 @@ val presentationModule = module {
 
     viewModel<MainViewModel> {
         MainViewModel(
-            getBalancesUseCase =  get()
+            getBalancesUseCase =  get(),
+            getRatesUseCase = get()
         )
     }
 }
