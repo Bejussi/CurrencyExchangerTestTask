@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_start_end">16dp</dimen>
+    <dimen name="margin_top_bottom">16dp</dimen>
+    <dimen name="balances_margin_top">20dp</dimen>
+    <dimen name="currency_margin_top">24dp</dimen>
+    <dimen name="submit_button_margin_start_end">20dp</dimen>
+    <dimen name="converter_icon_size">48dp</dimen>
+    <dimen name="converter_item_name_margin_start">8dp</dimen>
+    <dimen name="currency_sell_margin_top">16dp</dimen>
+    <dimen name="currency_receive_margin_top">16dp</dimen>
+    <dimen name="line_height">2dp</dimen>
+    <dimen name="line_margin_top">16dp</dimen>
+    <dimen name="rates_margin_start">8dp</dimen>
+    <dimen name="balance_content_margin_start">4dp</dimen>
+    <dimen name="balance_item_space">24dp</dimen>
+</resources>
