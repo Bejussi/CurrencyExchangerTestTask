@@ -3,9 +3,11 @@ package com.bejussi.currencyexchangertesttask.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.bejussi.currencyexchangertesttask.data.local.model.BalanceDto
+import com.bejussi.currencyexchangertesttask.data.local.model.CurrencyDto
+import com.bejussi.currencyexchangertesttask.data.local.model.TransactionDto
 
 @Database(
-    entities = [BalanceDto::class],
+    entities = [BalanceDto::class, TransactionDto::class, CurrencyDto::class],
     version = 1,
     exportSchema = false
 )

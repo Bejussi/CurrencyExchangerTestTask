@@ -7,6 +7,6 @@ import kotlinx.coroutines.flow.Flow
 
 class GetRatesUseCase(private val currencyExchangerRepository: CurrencyExchangerRepository) {
 
-    suspend operator fun invoke(base: String): Flow<Resource<CurrencyResponce>> =
-        currencyExchangerRepository.getRates(base = base)
+    suspend operator fun invoke(): Flow<Resource<CurrencyResponce>> =
+        currencyExchangerRepository.getRates()
 }

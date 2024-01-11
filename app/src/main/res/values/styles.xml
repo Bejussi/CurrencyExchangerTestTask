@@ -21,4 +21,10 @@
     <style name="BodyReceiveMoneyText" parent="TextAppearance.AppCompat.Subhead">
         <item name="android:textColor">@color/green</item>
     </style>
+
+    <style name="InternetErrorText" parent="TextAppearance.AppCompat.Subhead">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@color/red</item>
+    </style>
 </resources>

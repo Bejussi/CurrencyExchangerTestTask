@@ -1,10 +1,7 @@
 package com.bejussi.currencyexchangertesttask.presentation
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
-import android.widget.AdapterView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.bejussi.currencyexchangertesttask.R
@@ -12,10 +9,13 @@ import com.bejussi.currencyexchangertesttask.core.UIEvent
 import com.bejussi.currencyexchangertesttask.core.afterItemSelected
 import com.bejussi.currencyexchangertesttask.core.afterTextChanged
 import com.bejussi.currencyexchangertesttask.core.makeToast
+import com.bejussi.currencyexchangertesttask.core.showTransactionDialog
 import com.bejussi.currencyexchangertesttask.databinding.ActivityMainBinding
 import com.bejussi.currencyexchangertesttask.presentation.main.MainViewModel
 import com.bejussi.currencyexchangertesttask.presentation.main.adapter.BalancesAdapter
 import com.bejussi.currencyexchangertesttask.presentation.main.adapter.BalancesItemDecoration
+import com.bejussi.currencyexchangertesttask.presentation.main.model.MainEvent
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -39,46 +39,57 @@ class MainActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            mainViewModel.eventFlow.collect { event ->
+            mainViewModel.state.collect { state ->
+                binding.receiveMoneyValue.text = state.receiveAmount.toString()
+                binding.internetText.visibility =
+                    if (state.isInternetAvailable) View.GONE else View.VISIBLE
+                binding.submitButton.isEnabled = state.isSubmitAvailable
+            }
+        }
+
+        lifecycleScope.launch {
+            mainViewModel.eventFlow.collectLatest { event ->
                 when (event) {
                     is UIEvent.ShowToast -> makeToast(event.message)
+                    is UIEvent.ShowSuccessDialog -> showTransactionDialog(
+                        title = getString(R.string.dialog_title),
+                        message = getString(
+                            R.string.dialog_message,
+                            event.transaction.sellAmount.toString(),
+                            event.transaction.fromCurrency,
+                            event.transaction.receiveAmount.toString(),
+                            event.transaction.toCurrency,
+                            event.transaction.commissionFee.toString(),
+                            event.transaction.fromCurrency
+                        ),
+                        positiveButtonText = getString(R.string.dialog_button)
+                    )
                 }
             }
         }
 
-        lifecycleScope.launch {
-            mainViewModel.receiveAmount.collect { receiveAmount ->
-                binding.receiveMoneyValue.text = receiveAmount.toString()
-            }
-        }
-
         binding.sellMoneyValue.afterTextChanged { value ->
-            if (value.isEmpty() || value.toDouble().equals(0.0)) {
-                makeToast(resources.getString(R.string.invalid_amount))
+            if (value.isNotEmpty()) {
+                sendEvent(MainEvent.SetSellAmount(sellAmount = value.toDouble()))
             } else {
-                performConversion()
+                sendEvent(MainEvent.SetSellAmount(sellAmount = 0.0))
             }
         }
 
-        binding.sellRatesSpinner.afterItemSelected {
-            performConversion()
+        binding.sellRatesSpinner.afterItemSelected { selectedItem ->
+            sendEvent(MainEvent.SetSellCurrency(sellCurrency = selectedItem))
         }
 
-        binding.receiveRatesSpinner.afterItemSelected {
-            performConversion()
+        binding.receiveRatesSpinner.afterItemSelected { selectedItem ->
+            sendEvent(MainEvent.SetReceiveCurrency(receiveCurrency = selectedItem))
         }
 
-    }
-
-    private fun performConversion() {
-        lifecycleScope.launch {
-            mainViewModel.calculateConvertation(
-                sellAmount = binding.sellMoneyValue.text.toString(),
-                fromCurrency = binding.sellRatesSpinner.selectedItem.toString(),
-                toCurrency = binding.receiveRatesSpinner.selectedItem.toString()
-            )
+        binding.submitButton.setOnClickListener {
+            sendEvent(MainEvent.SubmitTransaction)
         }
     }
+
+    private fun sendEvent(mainEvent: MainEvent) = mainViewModel.onEvent(mainEvent)
 
     private fun setupBalancesRecyclerView() {
         balancesAdapter = BalancesAdapter()

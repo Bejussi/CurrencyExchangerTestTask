@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+    id("kotlin-kapt")
 }
 
 android {
@@ -36,32 +37,50 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        dataBinding = true
     }
 }
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    val lifecycle_version = rootProject.extra["lifecycle_version"]
+    val reflect = rootProject.extra["reflect"]
+    val retrofit = rootProject.extra["retrofit"]
+    val room = rootProject.extra["room"]
+    val koin = rootProject.extra["koin"]
+    val core = rootProject.extra["core"]
+    val appcompat = rootProject.extra["appcompat"]
+    val material = rootProject.extra["material"]
+    val constraintlayout = rootProject.extra["constraintlayout"]
+    val junit = rootProject.extra["junit"]
+    val junitTest = rootProject.extra["junitTest"]
+    val espresso = rootProject.extra["espresso"]
+
+    implementation("androidx.core:core-ktx:$core")
+    implementation("androidx.appcompat:appcompat:$appcompat")
+    implementation("com.google.android.material:material:$material")
+    implementation("androidx.constraintlayout:constraintlayout:$constraintlayout")
+    testImplementation("junit:junit:$junit")
+    androidTestImplementation("androidx.test.ext:junit:$junitTest")
+    androidTestImplementation("androidx.test.espresso:espresso-core:$espresso")
 
     // Koin
-    implementation("io.insert-koin:koin-core:3.2.2")
-    implementation("io.insert-koin:koin-android:3.2.2")
+    implementation("io.insert-koin:koin-core:$koin")
+    implementation("io.insert-koin:koin-android:$koin")
 
     //Room
-    implementation("androidx.room:room-runtime:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
-    implementation ("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.room:room-runtime:$room")
+    ksp("androidx.room:room-compiler:$room")
+    implementation ("androidx.room:room-ktx:$room")
 
     // Retrofit
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.retrofit2:retrofit:$retrofit")
+    implementation("com.squareup.retrofit2:converter-gson:$retrofit")
 
     //Reflection
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.8.21")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$reflect")
+
+    // Lifecycle
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
 }
