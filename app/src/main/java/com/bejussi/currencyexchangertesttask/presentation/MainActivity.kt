@@ -98,18 +98,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupCurrencyAdapters() {
-        val sellCurrencyAdapter = ArrayAdapter(
-            this,
-            R.layout.dropdown_item,
-            resources.getStringArray(R.array.sell_currency_codes)
-        )
-        val receiveCurrencyAdapter = ArrayAdapter(
-            this,
-            R.layout.dropdown_item,
-            resources.getStringArray(R.array.receive_currency_codes)
-        )
+        val sellCurrencyAdapter = createCurrencyAdapter(R.array.sell_currency_codes)
+        val receiveCurrencyAdapter = createCurrencyAdapter(R.array.receive_currency_codes)
+
         binding.sellRatesAutoCompleteTextView.setAdapter(sellCurrencyAdapter)
         binding.receiveRatesAutoCompleteTextView.setAdapter(receiveCurrencyAdapter)
+    }
+
+    private fun createCurrencyAdapter(arrayResId: Int): ArrayAdapter<String> {
+        return ArrayAdapter(this, R.layout.dropdown_item, resources.getStringArray(arrayResId))
     }
 
     private fun sendEvent(mainEvent: MainEvent) = mainViewModel.onEvent(mainEvent)

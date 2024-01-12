@@ -15,8 +15,6 @@ import com.bejussi.currencyexchangertesttask.domain.model.Transaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import retrofit2.HttpException
-import java.io.IOException
 
 class CurrencyExchangerRepositoryImpl(
     private val balanceDao: BalanceDao,
@@ -32,13 +30,13 @@ class CurrencyExchangerRepositoryImpl(
     }
 
     override suspend fun getRates(): Flow<Resource<CurrencyResponce>> = flow {
+        val newCurrencyData = balanceDao.getCurrency().mapCurrencyDtoToCurrencyResponce()
+
         try {
             val data = currencyExchangeRatesApi.getRates()
             balanceDao.insertCurrency(data.mapCurrencyResponceDataToCurrencyDto())
-            val newCurrencyData = balanceDao.getCurrency().mapCurrencyDtoToCurrencyResponce()
             emit(Resource.Success(data = newCurrencyData, isError = false))
         } catch (e: Exception) {
-            val newCurrencyData = balanceDao.getCurrency().mapCurrencyDtoToCurrencyResponce()
             emit(Resource.Success(data = newCurrencyData, isError = true))
         }
     }

@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     extra.apply {
-        set("lifecycle_version","2.6.1")
+        set("lifecycle_version","2.7.0")
         set("reflect","1.8.22")
         set("retrofit","2.9.0")
         set("room","2.6.1")
@@ -18,6 +18,7 @@ buildscript {
         set("coroutines_test_version","1.6.4")
         set("turbine","1.0.0")
         set("mockk","1.13.5")
+        set("jupiter","5.8.2")
     }
 }
 plugins {

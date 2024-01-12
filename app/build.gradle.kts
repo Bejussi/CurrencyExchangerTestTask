@@ -59,6 +59,7 @@ dependencies {
     val coroutinesTest = rootProject.extra["coroutines_test_version"]
     val turbine = rootProject.extra["turbine"]
     val mockk = rootProject.extra["mockk"]
+    val jupiter = rootProject.extra["jupiter"]
 
     implementation("androidx.core:core-ktx:$core")
     implementation("androidx.appcompat:appcompat:$appcompat")
@@ -75,8 +76,8 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockk")
     testImplementation("io.mockk:mockk-android:$mockk")
     testImplementation("app.cash.turbine:turbine:$turbine")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiter")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiter")
 
     // Koin
     implementation("io.insert-koin:koin-core:$koin")
