@@ -1,6 +1,5 @@
 package com.bejussi.currencyexchangertesttask.presentation.main
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bejussi.currencyexchangertesttask.core.Resource
@@ -42,7 +41,7 @@ class MainViewModel(
 
     private val _rates: MutableStateFlow<Rates?> = MutableStateFlow(null)
 
-    var repeatJob: Job? = null
+    private var repeatJob: Job? = null
 
     init {
         getInitialData()
@@ -152,15 +151,6 @@ class MainViewModel(
 
                         is Resource.Success -> {
                             _rates.value = resource.data?.rates
-                            _state.value = state.value.copy(
-                                isInternetAvailable = true
-                            )
-                        }
-
-                        is Resource.InternetError -> {
-                            _state.value = state.value.copy(
-                                isInternetAvailable = false
-                            )
                         }
                     }
                 }

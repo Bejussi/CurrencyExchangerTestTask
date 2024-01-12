@@ -8,11 +8,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bejussi.currencyexchangertesttask.databinding.BalanceItemBinding
 import com.bejussi.currencyexchangertesttask.domain.model.Balance
 
-class BalancesAdapter: ListAdapter<Balance, BalancesAdapter.BalanceViewHolder>(Diff()) {
+class BalancesAdapter : ListAdapter<Balance, BalancesAdapter.BalanceViewHolder>(Diff()) {
 
     inner class BalanceViewHolder(
         private val binding: BalanceItemBinding
-    ): RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(balance: Balance) {
             binding.apply {

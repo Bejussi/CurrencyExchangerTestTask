@@ -38,13 +38,13 @@ class CurrencyExchangerRepositoryImpl(
         } catch (e: HttpException) {
             emit(Resource.Error(e.message ?: "An error occured"))
         } catch (e: IOException) {
-            emit(Resource.InternetError("Check Internet"))
+            emit(Resource.Error("Check Internet"))
         }
         val newCurrencyData = balanceDao.getCurrency().mapCurrencyDtoToCurrencyResponce()
         if (newCurrencyData != null) {
             emit(Resource.Success(data = newCurrencyData))
         } else {
-            emit(Resource.InternetError("Check Internet"))
+            emit(Resource.Error("Check Internet"))
         }
     }
 

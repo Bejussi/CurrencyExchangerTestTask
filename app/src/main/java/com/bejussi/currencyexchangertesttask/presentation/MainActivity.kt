@@ -2,12 +2,12 @@ package com.bejussi.currencyexchangertesttask.presentation
 
 import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.bejussi.currencyexchangertesttask.R
 import com.bejussi.currencyexchangertesttask.core.UIEvent
-import com.bejussi.currencyexchangertesttask.core.afterItemSelected
-import com.bejussi.currencyexchangertesttask.core.afterTextChanged
 import com.bejussi.currencyexchangertesttask.core.makeToast
 import com.bejussi.currencyexchangertesttask.core.showTransactionDialog
 import com.bejussi.currencyexchangertesttask.databinding.ActivityMainBinding
@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupCurrencyAdapters()
         setupBalancesRecyclerView()
 
         lifecycleScope.launch {
@@ -40,7 +41,8 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             mainViewModel.state.collect { state ->
-                binding.receiveMoneyValue.text = state.receiveAmount.toString()
+                binding.receiveMoneyValue.text =
+                    getString(R.string.receive_amount, state.receiveAmount.toString())
                 binding.internetText.visibility =
                     if (state.isInternetAvailable) View.GONE else View.VISIBLE
                 binding.submitButton.isEnabled = state.isSubmitAvailable
@@ -68,25 +70,46 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        binding.sellMoneyValue.afterTextChanged { value ->
-            if (value.isNotEmpty()) {
-                sendEvent(MainEvent.SetSellAmount(sellAmount = value.toDouble()))
-            } else {
-                sendEvent(MainEvent.SetSellAmount(sellAmount = 0.0))
+        binding.sellMoneyEditText.doOnTextChanged { inputText, _, _, _ ->
+            val text = inputText.toString().trim()
+            if (text.isNotEmpty()) {
+                sendEvent(MainEvent.SetSellAmount(sellAmount = text.toDouble()))
             }
         }
 
-        binding.sellRatesSpinner.afterItemSelected { selectedItem ->
+        binding.sellRatesAutoCompleteTextView.setOnItemClickListener { adapterView, view, position, l ->
+            val selectedItem = adapterView.getItemAtPosition(position).toString()
             sendEvent(MainEvent.SetSellCurrency(sellCurrency = selectedItem))
         }
 
-        binding.receiveRatesSpinner.afterItemSelected { selectedItem ->
+        binding.receiveRatesAutoCompleteTextView.setOnItemClickListener { adapterView, view, position, l ->
+            val selectedItem = adapterView.getItemAtPosition(position).toString()
             sendEvent(MainEvent.SetReceiveCurrency(receiveCurrency = selectedItem))
         }
 
         binding.submitButton.setOnClickListener {
             sendEvent(MainEvent.SubmitTransaction)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setupCurrencyAdapters()
+    }
+
+    private fun setupCurrencyAdapters() {
+        val sellCurrencyAdapter = ArrayAdapter(
+            this,
+            R.layout.dropdown_item,
+            resources.getStringArray(R.array.sell_currency_codes)
+        )
+        val receiveCurrencyAdapter = ArrayAdapter(
+            this,
+            R.layout.dropdown_item,
+            resources.getStringArray(R.array.receive_currency_codes)
+        )
+        binding.sellRatesAutoCompleteTextView.setAdapter(sellCurrencyAdapter)
+        binding.receiveRatesAutoCompleteTextView.setAdapter(receiveCurrencyAdapter)
     }
 
     private fun sendEvent(mainEvent: MainEvent) = mainViewModel.onEvent(mainEvent)

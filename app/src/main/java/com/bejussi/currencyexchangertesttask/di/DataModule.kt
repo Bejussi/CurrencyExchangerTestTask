@@ -28,7 +28,8 @@ val dataModule = module {
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
                     CoroutineScope(Dispatchers.IO).launch {
-                        get<CurrencyExchangerDatabase>().balanceDao().addBalance(CurrencyExchangerDatabase.PREPOPULATE_DATA)
+                        get<CurrencyExchangerDatabase>().balanceDao()
+                            .addBalance(CurrencyExchangerDatabase.PREPOPULATE_DATA)
                     }
                 }
             })

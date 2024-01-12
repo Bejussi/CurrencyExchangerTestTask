@@ -22,7 +22,9 @@ class CalculateReceivedAmountUseCase(
                 emit(Resource.Error("Amount must be greater than 0"))
                 return@flow
             }
-            val sellCurrencyBalance = currencyExchangerRepository.getBalanceAmountByCurrencyCode(currencyCode = sellCurrency).first()
+            val sellCurrencyBalance =
+                currencyExchangerRepository.getBalanceAmountByCurrencyCode(currencyCode = sellCurrency)
+                    .first()
             if (sellAmount > sellCurrencyBalance) {
                 emit(Resource.Error("Insufficient funds on balance"))
                 return@flow

@@ -1,12 +1,6 @@
 package com.bejussi.currencyexchangertesttask.core
 
 import android.content.Context
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.View
-import android.widget.AdapterView
-import android.widget.EditText
-import android.widget.Spinner
 import android.widget.Toast
 import com.bejussi.currencyexchangertesttask.data.local.model.BalanceDto
 import com.bejussi.currencyexchangertesttask.data.local.model.CurrencyDto
@@ -27,50 +21,25 @@ fun Context.makeToast(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_LONG).show()
 }
 
-fun EditText.afterTextChanged(afterTextChanged: (String) -> Unit) {
-    this.addTextChangedListener(object : TextWatcher {
-        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        override fun afterTextChanged(editable: Editable?) {
-            afterTextChanged.invoke(editable.toString())
-        }
-    })
-}
-
 fun Context.showTransactionDialog(title: String, message: String, positiveButtonText: String) {
     MaterialAlertDialogBuilder(this)
         .setTitle(title)
         .setMessage(message)
-        .setPositiveButton(positiveButtonText) { dialog, which ->
+        .setPositiveButton(positiveButtonText) { dialog, _ ->
             dialog.dismiss()
         }
         .show()
 }
 
 fun Rates.getDoubleValueByName(currency: String): Double? {
-    val property = Rates::class.members.find { it.name == currency }
-    return when (property) {
+    return when (val property = Rates::class.members.find { it.name == currency }) {
         is KProperty1<*, *> -> property.call(this) as? Double ?: 1.0
         else -> null
     }
 }
 
-fun List<Balance>.getCurrencyBalance(currencyCode: String): Double {
-    return this.find { it.currencyCode == currencyCode }?.balance
-        ?: 0.0
-}
-
 fun Double.roundValue(): Double {
     return BigDecimal(this).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-}
-
-fun Spinner.afterItemSelected(onItemSelected:(String) -> Unit) {
-    this.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-        override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-            onItemSelected(selectedItem.toString())
-        }
-        override fun onNothingSelected(p0: AdapterView<*>?) {}
-    }
 }
 
 fun Transaction.mapTransactionToTransactionDto(): TransactionDto {

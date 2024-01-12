@@ -7,16 +7,15 @@
     <string name="receive">Receive</string>
     <string name="money">0.00</string>
     <string name="currency_code">EUR</string>
+    <string name="currency_code_text">Currency Code</string>
     <string name="submit">Submit</string>
     <string name="receive_icon">Receive icon</string>
     <string name="sell_icon">Sell icon</string>
-    <string name="invalid_amount">Value can\'t be null or blank</string>
     <string name="dialog_title">Currency converted</string>
     <string name="dialog_message">You have converted %1$s %2$s to %3$s %4$s. Commission Fee - %5$s %6$s.</string>
     <string name="dialog_button">Done</string>
-    <string name="dialog_failed_title">Currency not converted</string>
-    <string name="dialog_failed_message">Insufficient funds to pay the fee. Commission Fee - %1$s %2$s.</string>
-    <string name="internet_unavailable">Internet is unavailable, exchange will be calculated using old values</string>
+    <string name="internet_unavailable">Internet is unavailable, exchange will be calculated using old values if they exist</string>
+    <string name="receive_amount">+%1$s</string>
 
     <string-array name="sell_currency_codes">
         <item>EUR</item>
