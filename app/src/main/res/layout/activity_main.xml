@@ -124,7 +124,6 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:inputType="numberDecimal"
-            android:hint="@string/money"
             tools:ignore="DuplicateSpeakableTextCheck,TextContrastCheck" />
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -214,7 +213,7 @@
             android:layout_height="wrap_content"
             android:inputType="none"
             android:layout_weight="1"
-            android:text="@string/currency_code"
+            android:text="@string/currency_receive_code"
             tools:ignore="LabelFor" />
 
     </com.google.android.material.textfield.TextInputLayout>

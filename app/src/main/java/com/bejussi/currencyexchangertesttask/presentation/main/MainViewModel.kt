@@ -97,11 +97,7 @@ class MainViewModel(
                     }
 
                     else -> {
-                        sendUiEvent(
-                            UIEvent.ShowToast(
-                                resource.message ?: "Try again"
-                            )
-                        )
+                        sendTryAgainEvent(resource.message)
                         _state.value = state.value.copy(
                             isSubmitAvailable = false
                         )
@@ -121,16 +117,11 @@ class MainViewModel(
 
             ).collect { resource ->
                 when (resource) {
-
                     is Resource.Success -> {
                         sendUiEvent(UIEvent.ShowSuccessDialog(resource.data as Transaction))
                     }
 
-                    else -> sendUiEvent(
-                        UIEvent.ShowToast(
-                            resource.message ?: "Try again"
-                        )
-                    )
+                    else -> sendTryAgainEvent(resource.message)
                 }
             }
         }
@@ -141,22 +132,27 @@ class MainViewModel(
             while (isActive) {
                 getRatesUseCase().collect { resource ->
                     when (resource) {
-                        is Resource.Error -> {
-                            sendUiEvent(
-                                UIEvent.ShowToast(
-                                    resource.message ?: "Try again"
-                                )
-                            )
-                        }
+                        is Resource.Error -> {}
 
                         is Resource.Success -> {
                             _rates.value = resource.data?.rates
+                            _state.value = state.value.copy(
+                                isInternetAvailable = resource.isError ?: false
+                            )
                         }
                     }
                 }
                 delay(DELAY)
             }
         }
+    }
+
+    private fun sendTryAgainEvent(message: String?) {
+        sendUiEvent(
+            UIEvent.ShowToast(
+                message ?: "Try again"
+            )
+        )
     }
 
     private fun getBalances() {

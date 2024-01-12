@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
                 binding.receiveMoneyValue.text =
                     getString(R.string.receive_amount, state.receiveAmount.toString())
                 binding.internetText.visibility =
-                    if (state.isInternetAvailable) View.GONE else View.VISIBLE
+                    if (state.isInternetAvailable) View.VISIBLE else View.GONE
                 binding.submitButton.isEnabled = state.isSubmitAvailable
             }
         }

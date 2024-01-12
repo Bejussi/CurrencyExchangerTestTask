@@ -11,8 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 
 class CalculateCommissionAndSubmitTransactionUseCase(
-    private val currencyExchangerRepository: CurrencyExchangerRepository,
-    private val commissionCalculator: CommissionCalculator
+    private val currencyExchangerRepository: CurrencyExchangerRepository
 ) {
     operator fun invoke(
         sellAmount: Double,
@@ -29,7 +28,7 @@ class CalculateCommissionAndSubmitTransactionUseCase(
                 currencyExchangerRepository.getBalanceAmountByCurrencyCode(currencyCode = receiveCurrency)
                     .first()
 
-            val calculatedCommission = commissionCalculator.calculateCommission(
+            val calculatedCommission = CommissionCalculator().calculateCommission(
                 totalTransactions = totalTransactionCount,
                 fromCurrency = sellCurrency,
                 sellAmount = sellAmount

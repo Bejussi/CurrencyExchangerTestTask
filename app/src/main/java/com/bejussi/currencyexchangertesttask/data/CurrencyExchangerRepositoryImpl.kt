@@ -35,16 +35,11 @@ class CurrencyExchangerRepositoryImpl(
         try {
             val data = currencyExchangeRatesApi.getRates()
             balanceDao.insertCurrency(data.mapCurrencyResponceDataToCurrencyDto())
-        } catch (e: HttpException) {
-            emit(Resource.Error(e.message ?: "An error occured"))
-        } catch (e: IOException) {
-            emit(Resource.Error("Check Internet"))
-        }
-        val newCurrencyData = balanceDao.getCurrency().mapCurrencyDtoToCurrencyResponce()
-        if (newCurrencyData != null) {
-            emit(Resource.Success(data = newCurrencyData))
-        } else {
-            emit(Resource.Error("Check Internet"))
+            val newCurrencyData = balanceDao.getCurrency().mapCurrencyDtoToCurrencyResponce()
+            emit(Resource.Success(data = newCurrencyData, isError = false))
+        } catch (e: Exception) {
+            val newCurrencyData = balanceDao.getCurrency().mapCurrencyDtoToCurrencyResponce()
+            emit(Resource.Success(data = newCurrencyData, isError = true))
         }
     }
 

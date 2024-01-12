@@ -28,8 +28,7 @@ val domainModule = module {
 
     factory<CalculateCommissionAndSubmitTransactionUseCase> {
         CalculateCommissionAndSubmitTransactionUseCase(
-            currencyExchangerRepository = get(),
-            commissionCalculator = get()
+            currencyExchangerRepository = get()
         )
     }
 }

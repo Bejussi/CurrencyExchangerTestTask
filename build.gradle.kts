@@ -13,6 +13,11 @@ buildscript {
         set("junit","4.13.2")
         set("junitTest","1.1.5")
         set("espresso","3.5.1")
+        set("mockito_core","4.5.0")
+        set("mockito_kotlin","4.1.0")
+        set("coroutines_test_version","1.6.4")
+        set("turbine","1.0.0")
+        set("mockk","1.13.5")
     }
 }
 plugins {
