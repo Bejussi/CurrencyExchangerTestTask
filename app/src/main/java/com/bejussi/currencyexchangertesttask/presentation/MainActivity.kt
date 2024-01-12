@@ -74,6 +74,8 @@ class MainActivity : AppCompatActivity() {
             val text = inputText.toString().trim()
             if (text.isNotEmpty()) {
                 sendEvent(MainEvent.SetSellAmount(sellAmount = text.toDouble()))
+            } else {
+                sendEvent(MainEvent.SetSellAmount(sellAmount = 0.0))
             }
         }
 
