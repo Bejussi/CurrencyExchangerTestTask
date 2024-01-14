@@ -1,4 +1,4 @@
-package com.bejussi.currencyexchangertesttask.presentation
+package com.bejussi.currencyexchangertesttask.presentation.main
 
 import android.os.Bundle
 import android.view.View
@@ -7,19 +7,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.bejussi.currencyexchangertesttask.R
-import com.bejussi.currencyexchangertesttask.core.UIEvent
 import com.bejussi.currencyexchangertesttask.core.makeToast
+import com.bejussi.currencyexchangertesttask.core.setSelectedItemListener
 import com.bejussi.currencyexchangertesttask.core.showTransactionDialog
 import com.bejussi.currencyexchangertesttask.databinding.ActivityMainBinding
-import com.bejussi.currencyexchangertesttask.presentation.main.MainViewModel
+import com.bejussi.currencyexchangertesttask.domain.model.Transaction
 import com.bejussi.currencyexchangertesttask.presentation.main.adapter.BalancesAdapter
 import com.bejussi.currencyexchangertesttask.presentation.main.adapter.BalancesItemDecoration
-import com.bejussi.currencyexchangertesttask.presentation.main.model.MainEvent
+import com.bejussi.currencyexchangertesttask.presentation.main.event.MainEvent
+import com.bejussi.currencyexchangertesttask.presentation.main.uiEvent.MainUiEventActions
+import com.bejussi.currencyexchangertesttask.presentation.main.uiEvent.MainUiEventResult
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), MainUiEventActions {
 
     private lateinit var binding: ActivityMainBinding
     private val mainViewModel: MainViewModel by inject()
@@ -51,22 +53,7 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             mainViewModel.eventFlow.collectLatest { event ->
-                when (event) {
-                    is UIEvent.ShowToast -> makeToast(event.message)
-                    is UIEvent.ShowSuccessDialog -> showTransactionDialog(
-                        title = getString(R.string.dialog_title),
-                        message = getString(
-                            R.string.dialog_message,
-                            event.transaction.sellAmount.toString(),
-                            event.transaction.fromCurrency,
-                            event.transaction.receiveAmount.toString(),
-                            event.transaction.toCurrency,
-                            event.transaction.commissionFee.toString(),
-                            event.transaction.fromCurrency
-                        ),
-                        positiveButtonText = getString(R.string.dialog_button)
-                    )
-                }
+                (event as MainUiEventResult).apply(this@MainActivity)
             }
         }
 
@@ -79,14 +66,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        binding.sellRatesAutoCompleteTextView.setOnItemClickListener { adapterView, view, position, l ->
-            val selectedItem = adapterView.getItemAtPosition(position).toString()
-            sendEvent(MainEvent.SetSellCurrency(sellCurrency = selectedItem))
+        binding.sellRatesAutoCompleteTextView.setSelectedItemListener { selectedItem ->
+            sendEvent(MainEvent.SetSellCurrency(sellCurrency = selectedItem as String))
         }
 
-        binding.receiveRatesAutoCompleteTextView.setOnItemClickListener { adapterView, view, position, l ->
-            val selectedItem = adapterView.getItemAtPosition(position).toString()
-            sendEvent(MainEvent.SetReceiveCurrency(receiveCurrency = selectedItem))
+        binding.receiveRatesAutoCompleteTextView.setSelectedItemListener { selectedItem ->
+            sendEvent(MainEvent.SetReceiveCurrency(receiveCurrency = selectedItem as String))
         }
 
         binding.submitButton.setOnClickListener {
@@ -97,6 +82,24 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         setupCurrencyAdapters()
+    }
+
+    override fun showToastMessage(message: String) = makeToast(message)
+
+    override fun showSuccessDialog(transaction: Transaction) {
+        showTransactionDialog(
+            title = getString(R.string.dialog_title),
+            message = getString(
+                R.string.dialog_message,
+                transaction.sellAmount.toString(),
+                transaction.fromCurrency,
+                transaction.receiveAmount.toString(),
+                transaction.toCurrency,
+                transaction.commissionFee.toString(),
+                transaction.fromCurrency
+            ),
+            positiveButtonText = getString(R.string.dialog_button)
+        )
     }
 
     private fun setupCurrencyAdapters() {

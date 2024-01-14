@@ -1,11 +1,11 @@
 package com.bejussi.currencyexchangertesttask.domain.use_case
 
-import com.bejussi.currencyexchangertesttask.core.Resource
 import com.bejussi.currencyexchangertesttask.core.roundValue
 import com.bejussi.currencyexchangertesttask.domain.CurrencyExchangerRepository
 import com.bejussi.currencyexchangertesttask.domain.model.Balance
 import com.bejussi.currencyexchangertesttask.domain.model.Transaction
-import com.bejussi.currencyexchangertesttask.util.CommissionCalculator
+import com.bejussi.currencyexchangertesttask.presentation.main.actions.calculateCommission.CalculateCommissionAndSubmitTransactionResult
+import com.bejussi.currencyexchangertesttask.util.commission.CommissionCalculatorStrategy
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -18,7 +18,7 @@ class CalculateCommissionAndSubmitTransactionUseCase(
         sellCurrency: String,
         receiveCurrency: String,
         receiveAmount: Double
-    ): Flow<Resource<Any>> = flow {
+    ): Flow<CalculateCommissionAndSubmitTransactionResult<Any>> = flow {
         try {
             val totalTransactionCount = currencyExchangerRepository.getTransactionCount().first()
             val sellCurrencyBalance =
@@ -28,25 +28,29 @@ class CalculateCommissionAndSubmitTransactionUseCase(
                 currencyExchangerRepository.getBalanceAmountByCurrencyCode(currencyCode = receiveCurrency)
                     .first()
 
-            val calculatedCommission = CommissionCalculator().calculateCommission(
+            val calculatedCommission = CommissionCalculatorStrategy().calculateCommission(
                 totalTransactions = totalTransactionCount,
                 fromCurrency = sellCurrency,
                 sellAmount = sellAmount
             ).roundValue()
 
-            if (sellCurrencyBalance - (sellAmount + calculatedCommission) < 0) {
-                emit(Resource.Error(message = "Insufficient funds to pay the fee"))
+            val balanceAfterTransaction = sellCurrencyBalance - (sellAmount + calculatedCommission)
+
+            if (balanceAfterTransaction < 0) {
+                emit(CalculateCommissionAndSubmitTransactionResult.Error(message = "Insufficient funds to pay the fee"))
                 return@flow
             }
 
             val sellBalanceUpdate = Balance(
                 currencyCode = sellCurrency,
-                balance = (sellCurrencyBalance - (sellAmount + calculatedCommission)).roundValue()
+                balance = balanceAfterTransaction.roundValue()
             )
+
+            val receivedBalanceAmount = receiveCurrencyBalance + receiveAmount
 
             val receiveBalanceUpdate = Balance(
                 currencyCode = receiveCurrency,
-                balance = (receiveCurrencyBalance + receiveAmount).roundValue()
+                balance = receivedBalanceAmount.roundValue()
             )
 
             currencyExchangerRepository.addBalance(sellBalanceUpdate)
@@ -63,9 +67,9 @@ class CalculateCommissionAndSubmitTransactionUseCase(
             )
             currencyExchangerRepository.addTransaction(transaction = transaction)
 
-            emit(Resource.Success(data = transaction))
+            emit(CalculateCommissionAndSubmitTransactionResult.Success(data = transaction))
         } catch (e: Exception) {
-            emit(Resource.Error(message = "Try again"))
+            emit(CalculateCommissionAndSubmitTransactionResult.Error(message = "Try again"))
         }
     }
 }

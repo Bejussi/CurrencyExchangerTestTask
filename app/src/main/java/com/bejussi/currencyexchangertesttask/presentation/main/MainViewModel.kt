@@ -1,9 +1,7 @@
 package com.bejussi.currencyexchangertesttask.presentation.main
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bejussi.currencyexchangertesttask.core.Resource
-import com.bejussi.currencyexchangertesttask.core.UIEvent
+import com.bejussi.currencyexchangertesttask.core.BaseViewModel
 import com.bejussi.currencyexchangertesttask.core.getDoubleValueByName
 import com.bejussi.currencyexchangertesttask.domain.model.Balance
 import com.bejussi.currencyexchangertesttask.domain.model.Rates
@@ -12,14 +10,17 @@ import com.bejussi.currencyexchangertesttask.domain.use_case.CalculateCommission
 import com.bejussi.currencyexchangertesttask.domain.use_case.CalculateReceivedAmountUseCase
 import com.bejussi.currencyexchangertesttask.domain.use_case.GetBalancesUseCase
 import com.bejussi.currencyexchangertesttask.domain.use_case.GetRatesUseCase
-import com.bejussi.currencyexchangertesttask.presentation.main.model.MainEvent
+import com.bejussi.currencyexchangertesttask.presentation.main.actions.calculateCommission.CalculateCommissionAndSubmitTransactionActions
+import com.bejussi.currencyexchangertesttask.presentation.main.actions.calculateReceiveAmount.CalculateReceivedAmountActions
+import com.bejussi.currencyexchangertesttask.presentation.main.actions.rates.RatesActions
+import com.bejussi.currencyexchangertesttask.presentation.main.event.MainEvent
+import com.bejussi.currencyexchangertesttask.presentation.main.event.MainEvents
 import com.bejussi.currencyexchangertesttask.presentation.main.model.MainState
+import com.bejussi.currencyexchangertesttask.presentation.main.uiEvent.MainUiEventResult
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -28,13 +29,11 @@ class MainViewModel(
     private val getRatesUseCase: GetRatesUseCase,
     private val calculateReceivedAmountUseCase: CalculateReceivedAmountUseCase,
     private val calculateCommissionAndSubmitTransactionUseCase: CalculateCommissionAndSubmitTransactionUseCase
-) : ViewModel() {
+) : BaseViewModel(), MainEvents, CalculateReceivedAmountActions,
+    CalculateCommissionAndSubmitTransactionActions, RatesActions {
 
     private val _state: MutableStateFlow<MainState> = MutableStateFlow(MainState())
     val state = _state.asStateFlow()
-
-    private val _eventFlow = Channel<UIEvent>()
-    val eventFlow = _eventFlow.receiveAsFlow()
 
     private val _balances: MutableStateFlow<List<Balance>> = MutableStateFlow(emptyList())
     val balances = _balances.asStateFlow()
@@ -52,108 +51,7 @@ class MainViewModel(
         repeatJob = getRates()
     }
 
-    fun onEvent(event: MainEvent) {
-        when (event) {
-            is MainEvent.SetReceiveCurrency -> {
-                _state.value = state.value.copy(
-                    receiveCurrency = event.receiveCurrency
-                )
-                calculateReceivedAmount()
-            }
-
-            is MainEvent.SetSellAmount -> {
-                _state.value = state.value.copy(
-                    sellAmount = event.sellAmount
-                )
-                calculateReceivedAmount()
-            }
-
-            is MainEvent.SetSellCurrency -> {
-                _state.value = state.value.copy(
-                    sellCurrency = event.sellCurrency
-                )
-                calculateReceivedAmount()
-            }
-
-            MainEvent.SubmitTransaction -> submitTransaction()
-        }
-    }
-
-    private fun calculateReceivedAmount() {
-        viewModelScope.launch {
-            val rateValue = _rates.value?.getDoubleValueByName(_state.value.receiveCurrency)
-            calculateReceivedAmountUseCase(
-                sellAmount = _state.value.sellAmount,
-                rateValue = rateValue,
-                receiveCurrency = _state.value.receiveCurrency,
-                sellCurrency = _state.value.sellCurrency
-            ).collect { resource ->
-                when (resource) {
-                    is Resource.Success -> {
-                        _state.value = state.value.copy(
-                            receiveAmount = resource.data as Double,
-                            isSubmitAvailable = true
-                        )
-                    }
-
-                    else -> {
-                        sendTryAgainEvent(resource.message)
-                        _state.value = state.value.copy(
-                            isSubmitAvailable = false
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    private fun submitTransaction() {
-        viewModelScope.launch {
-            calculateCommissionAndSubmitTransactionUseCase(
-                sellAmount = _state.value.sellAmount,
-                sellCurrency = _state.value.sellCurrency,
-                receiveCurrency = _state.value.receiveCurrency,
-                receiveAmount = _state.value.receiveAmount
-
-            ).collect { resource ->
-                when (resource) {
-                    is Resource.Success -> {
-                        sendUiEvent(UIEvent.ShowSuccessDialog(resource.data as Transaction))
-                    }
-
-                    else -> sendTryAgainEvent(resource.message)
-                }
-            }
-        }
-    }
-
-    private fun getRates(): Job {
-        return viewModelScope.launch {
-            while (isActive) {
-                getRatesUseCase().collect { resource ->
-                    when (resource) {
-                        is Resource.Error -> {}
-
-                        is Resource.Success -> {
-                            _rates.value = resource.data?.rates
-                            _state.value = state.value.copy(
-                                isInternetAvailable = resource.isError ?: false
-                            )
-                        }
-                    }
-                }
-                delay(DELAY)
-            }
-        }
-    }
-
-    private fun sendTryAgainEvent(message: String?) {
-        sendUiEvent(
-            UIEvent.ShowToast(
-                message ?: "Try again"
-            )
-        )
-    }
+    fun onEvent(event: MainEvent) = event.apply(this)
 
     private fun getBalances() {
         viewModelScope.launch {
@@ -163,10 +61,88 @@ class MainViewModel(
         }
     }
 
-    private fun sendUiEvent(uiEvent: UIEvent) {
-        viewModelScope.launch {
-            _eventFlow.send(uiEvent)
+    private fun getRates(): Job {
+        return viewModelScope.launch {
+            while (isActive) {
+                getRatesUseCase().collect { ratesResult ->
+                    ratesResult.apply(this@MainViewModel)
+                }
+                delay(DELAY)
+            }
         }
+    }
+
+    private fun calculateReceivedAmount() {
+        val rateValue = _rates.value?.getDoubleValueByName(_state.value.receiveCurrency)
+        viewModelScope.launch {
+            calculateReceivedAmountUseCase(
+                sellAmount = _state.value.sellAmount,
+                rateValue = rateValue,
+                receiveCurrency = _state.value.receiveCurrency,
+                sellCurrency = _state.value.sellCurrency
+            ).collect { calculateReceivedAmountResult ->
+                calculateReceivedAmountResult.apply(this@MainViewModel)
+            }
+        }
+    }
+
+    private fun sendTryAgainEvent(message: String?) {
+        sendUiEvent(MainUiEventResult.ShowToast(message ?: "Try again"))
+    }
+
+    override fun updateReceiveCurrencyCodeAndCalculateAmount(receiveCurrency: String) {
+        _state.value = state.value.copy(receiveCurrency = receiveCurrency)
+        calculateReceivedAmount()
+    }
+
+    override fun updateSellAmountAndCalculateAmount(sellAmount: Double) {
+        _state.value = state.value.copy(sellAmount = sellAmount)
+        calculateReceivedAmount()
+    }
+
+    override fun updateSellCurrencyCodeAndCalculateAmount(sellCurrency: String) {
+        _state.value = state.value.copy(sellCurrency = sellCurrency)
+        calculateReceivedAmount()
+    }
+
+    override fun updateSuccessReceiveAmount(receiveAmount: Double) {
+        _state.value = state.value.copy(
+            receiveAmount = receiveAmount,
+            isSubmitAvailable = true
+        )
+    }
+
+    override fun updateErrorReceiveAmount(message: String) {
+        sendTryAgainEvent(message)
+        _state.value = state.value.copy(isSubmitAvailable = false)
+    }
+
+    override fun submitTransaction() {
+        viewModelScope.launch {
+            calculateCommissionAndSubmitTransactionUseCase(
+                sellAmount = _state.value.sellAmount,
+                sellCurrency = _state.value.sellCurrency,
+                receiveCurrency = _state.value.receiveCurrency,
+                receiveAmount = _state.value.receiveAmount
+            ).collect { result ->
+                result.apply(this@MainViewModel)
+            }
+        }
+    }
+
+    override fun showSuccessfulDialog(transaction: Transaction) {
+        sendUiEvent(MainUiEventResult.ShowSuccessDialog(transaction = transaction))
+    }
+
+    override fun showError(message: String) {
+        sendTryAgainEvent(message = message)
+    }
+
+    override fun updateRates(rates: Rates?, isError: Boolean) {
+        _rates.value = rates
+        _state.value = state.value.copy(
+            isInternetAvailable = isError
+        )
     }
 
     override fun onCleared() {

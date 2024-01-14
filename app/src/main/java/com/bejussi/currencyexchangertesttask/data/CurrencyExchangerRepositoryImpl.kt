@@ -1,6 +1,5 @@
 package com.bejussi.currencyexchangertesttask.data
 
-import com.bejussi.currencyexchangertesttask.core.Resource
 import com.bejussi.currencyexchangertesttask.core.mapBalanceDtoToBalance
 import com.bejussi.currencyexchangertesttask.core.mapBalanceToBalanceDto
 import com.bejussi.currencyexchangertesttask.core.mapCurrencyDtoToCurrencyResponce
@@ -8,6 +7,7 @@ import com.bejussi.currencyexchangertesttask.core.mapCurrencyResponceDataToCurre
 import com.bejussi.currencyexchangertesttask.core.mapTransactionToTransactionDto
 import com.bejussi.currencyexchangertesttask.data.local.BalanceDao
 import com.bejussi.currencyexchangertesttask.data.remote.CurrencyExchangeRatesApi
+import com.bejussi.currencyexchangertesttask.data.remote.result.RatesResult
 import com.bejussi.currencyexchangertesttask.domain.CurrencyExchangerRepository
 import com.bejussi.currencyexchangertesttask.domain.model.Balance
 import com.bejussi.currencyexchangertesttask.domain.model.CurrencyResponce
@@ -29,15 +29,15 @@ class CurrencyExchangerRepositoryImpl(
         }
     }
 
-    override suspend fun getRates(): Flow<Resource<CurrencyResponce>> = flow {
+    override suspend fun getRates(): Flow<RatesResult<CurrencyResponce>> = flow {
         val newCurrencyData = balanceDao.getCurrency().mapCurrencyDtoToCurrencyResponce()
 
         try {
             val data = currencyExchangeRatesApi.getRates()
             balanceDao.insertCurrency(data.mapCurrencyResponceDataToCurrencyDto())
-            emit(Resource.Success(data = newCurrencyData, isError = false))
+            emit(RatesResult.Success(rates = newCurrencyData?.rates, isError = false))
         } catch (e: Exception) {
-            emit(Resource.Success(data = newCurrencyData, isError = true))
+            emit(RatesResult.Success(rates = newCurrencyData?.rates, isError = true))
         }
     }
 

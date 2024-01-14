@@ -1,6 +1,7 @@
 package com.bejussi.currencyexchangertesttask.core
 
 import android.content.Context
+import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import com.bejussi.currencyexchangertesttask.data.local.model.BalanceDto
 import com.bejussi.currencyexchangertesttask.data.local.model.CurrencyDto
@@ -29,6 +30,13 @@ fun Context.showTransactionDialog(title: String, message: String, positiveButton
             dialog.dismiss()
         }
         .show()
+}
+
+fun AutoCompleteTextView.setSelectedItemListener(onSelected: (Any) -> Unit) {
+    setOnItemClickListener { adapterView, view, position, l ->
+        val selectedItem = adapterView.getItemAtPosition(position).toString()
+        onSelected(selectedItem)
+    }
 }
 
 fun Rates.getDoubleValueByName(currency: String): Double? {

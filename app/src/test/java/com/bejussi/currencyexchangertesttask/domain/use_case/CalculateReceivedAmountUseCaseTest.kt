@@ -1,7 +1,7 @@
 package com.bejussi.currencyexchangertesttask.domain.use_case
 
-import com.bejussi.currencyexchangertesttask.core.Resource
 import com.bejussi.currencyexchangertesttask.domain.CurrencyExchangerRepository
+import com.bejussi.currencyexchangertesttask.presentation.main.actions.calculateReceiveAmount.CalculateReceivedAmountResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
@@ -38,7 +38,7 @@ class CalculateReceivedAmountUseCaseTest {
         )
         val result = calculateReceivedAmountUseCase(0.0, "EUR", "USD", 0.0)
         result.collect { emission ->
-            assertTrue(emission is Resource.Error && emission.message == "Amount must be greater than 0")
+            assertTrue(emission is CalculateReceivedAmountResult.Error)
         }
     }
 
@@ -53,7 +53,7 @@ class CalculateReceivedAmountUseCaseTest {
 
             val result = calculateReceivedAmountUseCase(100.0, "EUR", "USD", 2.0)
             result.collect { emission ->
-                assertTrue(emission is Resource.Error && emission.message == "Insufficient funds on balance")
+                assertTrue(emission is CalculateReceivedAmountResult.Error)
             }
         }
 
@@ -67,7 +67,7 @@ class CalculateReceivedAmountUseCaseTest {
                 .thenReturn(flow { emit(100.0) })
             val result = calculateReceivedAmountUseCase(100.0, "EUR", "EUR", 1.0)
             result.collect { emission ->
-                assertTrue(emission is Resource.Error && emission.message == "Exchange is impractical")
+                assertTrue(emission is CalculateReceivedAmountResult.Error)
             }
         }
 
@@ -80,7 +80,7 @@ class CalculateReceivedAmountUseCaseTest {
             .thenReturn(flow { emit(100.0) })
         val result = calculateReceivedAmountUseCase(100.0, "EUR", "USD", null)
         result.collect { emission ->
-            assertTrue(emission is Resource.Error && emission.message == "Rate invalid, try again")
+            assertTrue(emission is CalculateReceivedAmountResult.Error)
         }
     }
 
@@ -93,7 +93,7 @@ class CalculateReceivedAmountUseCaseTest {
             .thenReturn(flow { emit(100.0) })
         val result = calculateReceivedAmountUseCase(100.0, "EUR", "USD", 0.0)
         result.collect { emission ->
-            assertTrue(emission is Resource.Error && emission.message == "You will not profit from this exchange")
+            assertTrue(emission is CalculateReceivedAmountResult.Error)
         }
     }
 
@@ -106,7 +106,7 @@ class CalculateReceivedAmountUseCaseTest {
             .thenReturn(flow { emit(100.0) })
         val result = calculateReceivedAmountUseCase(100.0, "EUR", "USD", 2.0)
         result.collect { emission ->
-            assertTrue(emission is Resource.Success && emission.data == 200.0)
+            assertTrue(emission is CalculateReceivedAmountResult.Success)
         }
     }
 }

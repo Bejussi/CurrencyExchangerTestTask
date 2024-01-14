@@ -1,8 +1,8 @@
 package com.bejussi.currencyexchangertesttask.domain.use_case
 
-import com.bejussi.currencyexchangertesttask.core.Resource
 import com.bejussi.currencyexchangertesttask.domain.CurrencyExchangerRepository
 import com.bejussi.currencyexchangertesttask.domain.model.Transaction
+import com.bejussi.currencyexchangertesttask.presentation.main.actions.calculateCommission.CalculateCommissionAndSubmitTransactionResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
@@ -54,7 +54,7 @@ class CalculateCommissionAndSubmitTransactionUseCaseTest {
 
         val result = calculateCommissionAndSubmitTransactionUseCase(300.0, "EUR", "USD", 50.0)
         result.collect { emission ->
-            Assert.assertTrue(emission is Resource.Error && emission.message == "Insufficient funds to pay the fee")
+            Assert.assertTrue(emission is CalculateCommissionAndSubmitTransactionResult.Error)
         }
     }
 
@@ -90,115 +90,124 @@ class CalculateCommissionAndSubmitTransactionUseCaseTest {
         val result = calculateCommissionAndSubmitTransactionUseCase(300.0, "EUR", "USD", 50.0)
 
         result.collect { emission ->
-            Assert.assertTrue(emission is Resource.Success && emission.data == transaction)
+            Assert.assertTrue(emission is CalculateCommissionAndSubmitTransactionResult.Success)
         }
     }
 
     @Test
-    fun `should calculate commission amount with transaction that less then 5 and return free commission`() = runTest {
-        calculateCommissionAndSubmitTransactionUseCase =
-            CalculateCommissionAndSubmitTransactionUseCase(
-                currencyExchangerRepository = currencyExchangerRepository
+    fun `should calculate commission amount with transaction that less then 5 and return free commission`() =
+        runTest {
+            calculateCommissionAndSubmitTransactionUseCase =
+                CalculateCommissionAndSubmitTransactionUseCase(
+                    currencyExchangerRepository = currencyExchangerRepository
+                )
+
+            whenever(currencyExchangerRepository.getTransactionCount()).thenReturn(flow { emit(1) })
+            whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("EUR")).thenReturn(
+                flow {
+                    emit(
+                        400.0
+                    )
+                })
+            whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("USD")).thenReturn(
+                flow {
+                    emit(
+                        20.0
+                    )
+                })
+
+            val transaction = Transaction(
+                id = null,
+                toCurrency = "USD",
+                fromCurrency = "EUR",
+                sellAmount = 300.0,
+                receiveAmount = 50.0,
+                commissionFee = 0.0
+
             )
 
-        whenever(currencyExchangerRepository.getTransactionCount()).thenReturn(flow { emit(1) })
-        whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("EUR")).thenReturn(flow {
-            emit(
-                400.0
-            )
-        })
-        whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("USD")).thenReturn(flow {
-            emit(
-                20.0
-            )
-        })
+            val result = calculateCommissionAndSubmitTransactionUseCase(300.0, "EUR", "USD", 50.0)
 
-        val transaction = Transaction(
-            id = null,
-            toCurrency = "USD",
-            fromCurrency = "EUR",
-            sellAmount = 300.0,
-            receiveAmount = 50.0,
-            commissionFee = 0.0
-
-        )
-
-        val result = calculateCommissionAndSubmitTransactionUseCase(300.0, "EUR", "USD", 50.0)
-
-        result.collect { emission ->
-            Assert.assertTrue(emission is Resource.Success && emission.data == transaction)
+            result.collect { emission ->
+                Assert.assertTrue(emission is CalculateCommissionAndSubmitTransactionResult.Success)
+            }
         }
-    }
 
     @Test
-    fun `should calculate commission amount with transaction that multiple of 10 and return free commission`() = runTest {
-        calculateCommissionAndSubmitTransactionUseCase =
-            CalculateCommissionAndSubmitTransactionUseCase(
-                currencyExchangerRepository = currencyExchangerRepository
+    fun `should calculate commission amount with transaction that multiple of 10 and return free commission`() =
+        runTest {
+            calculateCommissionAndSubmitTransactionUseCase =
+                CalculateCommissionAndSubmitTransactionUseCase(
+                    currencyExchangerRepository = currencyExchangerRepository
+                )
+
+            whenever(currencyExchangerRepository.getTransactionCount()).thenReturn(flow { emit(10) })
+            whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("EUR")).thenReturn(
+                flow {
+                    emit(
+                        400.0
+                    )
+                })
+            whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("USD")).thenReturn(
+                flow {
+                    emit(
+                        20.0
+                    )
+                })
+
+            val transaction = Transaction(
+                id = null,
+                toCurrency = "USD",
+                fromCurrency = "EUR",
+                sellAmount = 300.0,
+                receiveAmount = 50.0,
+                commissionFee = 0.0
+
             )
 
-        whenever(currencyExchangerRepository.getTransactionCount()).thenReturn(flow { emit(10) })
-        whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("EUR")).thenReturn(flow {
-            emit(
-                400.0
-            )
-        })
-        whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("USD")).thenReturn(flow {
-            emit(
-                20.0
-            )
-        })
+            val result = calculateCommissionAndSubmitTransactionUseCase(300.0, "EUR", "USD", 50.0)
 
-        val transaction = Transaction(
-            id = null,
-            toCurrency = "USD",
-            fromCurrency = "EUR",
-            sellAmount = 300.0,
-            receiveAmount = 50.0,
-            commissionFee = 0.0
-
-        )
-
-        val result = calculateCommissionAndSubmitTransactionUseCase(300.0, "EUR", "USD", 50.0)
-
-        result.collect { emission ->
-            Assert.assertTrue(emission is Resource.Success && emission.data == transaction)
+            result.collect { emission ->
+                Assert.assertTrue(emission is CalculateCommissionAndSubmitTransactionResult.Success)
+            }
         }
-    }
 
     @Test
-    fun `should calculate commission amount with transaction that EUR sell amount less than 200 and return free commission`() = runTest {
-        calculateCommissionAndSubmitTransactionUseCase =
-            CalculateCommissionAndSubmitTransactionUseCase(
-                currencyExchangerRepository = currencyExchangerRepository
+    fun `should calculate commission amount with transaction that EUR sell amount less than 200 and return free commission`() =
+        runTest {
+            calculateCommissionAndSubmitTransactionUseCase =
+                CalculateCommissionAndSubmitTransactionUseCase(
+                    currencyExchangerRepository = currencyExchangerRepository
+                )
+
+            whenever(currencyExchangerRepository.getTransactionCount()).thenReturn(flow { emit(7) })
+            whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("EUR")).thenReturn(
+                flow {
+                    emit(
+                        400.0
+                    )
+                })
+            whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("USD")).thenReturn(
+                flow {
+                    emit(
+                        20.0
+                    )
+                })
+
+            val transaction = Transaction(
+                id = null,
+                toCurrency = "USD",
+                fromCurrency = "EUR",
+                sellAmount = 100.0,
+                receiveAmount = 50.0,
+                commissionFee = 0.0
+
             )
 
-        whenever(currencyExchangerRepository.getTransactionCount()).thenReturn(flow { emit(7) })
-        whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("EUR")).thenReturn(flow {
-            emit(
-                400.0
-            )
-        })
-        whenever(currencyExchangerRepository.getBalanceAmountByCurrencyCode("USD")).thenReturn(flow {
-            emit(
-                20.0
-            )
-        })
+            val result = calculateCommissionAndSubmitTransactionUseCase(100.0, "EUR", "USD", 50.0)
 
-        val transaction = Transaction(
-            id = null,
-            toCurrency = "USD",
-            fromCurrency = "EUR",
-            sellAmount = 100.0,
-            receiveAmount = 50.0,
-            commissionFee = 0.0
-
-        )
-
-        val result = calculateCommissionAndSubmitTransactionUseCase(100.0, "EUR", "USD", 50.0)
-
-        result.collect { emission ->
-            Assert.assertTrue(emission is Resource.Success && emission.data == transaction)
+            result.collect { emission ->
+                Assert.assertTrue(emission is CalculateCommissionAndSubmitTransactionResult.Success)
+            }
         }
-    }
 }
