@@ -7,5 +7,5 @@ data class MainState(
     val receiveAmount: Double = 0.0,
     val commissionFee: Double = 0.0,
     val isSubmitAvailable: Boolean = false,
-    val isInternetAvailable: Boolean = true
+    val isInternetAvailable: Boolean = false
 )
